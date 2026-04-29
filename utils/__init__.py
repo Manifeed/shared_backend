@@ -1,0 +1,2 @@
+"""Shared stateless utility helpers."""
+

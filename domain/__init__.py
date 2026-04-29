@@ -1,0 +1,2 @@
+"""Shared pure domain helpers."""
+

@@ -1,0 +1,2 @@
+"""Shared account schemas."""
+

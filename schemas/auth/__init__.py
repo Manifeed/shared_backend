@@ -1,0 +1,2 @@
+"""Shared auth schemas."""
+
