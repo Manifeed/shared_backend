@@ -1,2 +1,0 @@
-"""Shared internal service schemas."""
-

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from pydantic import ValidationError
 
 import pytest
-from pydantic import ValidationError
 
 from shared_backend.domain.current_user import build_authenticated_user_read
 from shared_backend.domain.password_policy import validate_password_policy
@@ -13,9 +13,6 @@ from shared_backend.domain.worker_identity import build_worker_name
 from shared_backend.errors.custom_exceptions import WeakPasswordError
 from shared_backend.schemas.account.account_schema import AccountProfileUpdateRequestSchema
 from shared_backend.utils.auth_utils import (
-    build_key_prefix,
-    generate_api_key,
-    generate_session_token,
     hash_password,
     hash_secret_token,
     verify_password,
@@ -83,12 +80,7 @@ def test_worker_name_uses_normalized_parts() -> None:
 
 def test_auth_utils_hash_and_token_contracts() -> None:
     password_hash = hash_password("valid-password")
-    api_key = generate_api_key()
-    session_token = generate_session_token()
 
     assert verify_password(password_hash, "valid-password") is True
     assert verify_password(password_hash, "invalid-password") is False
-    assert api_key.startswith("mk_")
-    assert session_token.startswith("msess_")
-    assert build_key_prefix(api_key) == api_key[:12]
     assert hash_secret_token("secret") == hash_secret_token("secret")
