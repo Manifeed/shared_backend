@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "manifeed-shared-backend"
-version = "0.1.0"
+version = "0.2.0"
 description = "Shared backend schemas, errors, domain helpers, and utilities for Manifeed services."
 requires-python = ">=3.11"
 dependencies = [
@@ -12,18 +12,26 @@ dependencies = [
     "pydantic==2.11.9",
     "email-validator==2.2.0",
     "argon2-cffi==23.1.0",
+    "httpx==0.27.0",
 ]
 
 [tool.setuptools]
 packages = [
     "shared_backend",
+    "shared_backend.clients",
     "shared_backend.domain",
     "shared_backend.errors",
+    "shared_backend.security",
     "shared_backend.schemas",
+    "shared_backend.schemas.analytics",
     "shared_backend.schemas.account",
     "shared_backend.schemas.admin",
     "shared_backend.schemas.auth",
     "shared_backend.schemas.internal",
+    "shared_backend.schemas.jobs",
+    "shared_backend.schemas.rss",
+    "shared_backend.schemas.sources",
+    "shared_backend.schemas.workers",
     "shared_backend.utils",
 ]
 package-dir = { "shared_backend" = "." }
