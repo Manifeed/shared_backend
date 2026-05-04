@@ -97,6 +97,11 @@ class JobAlreadyRunningError(ConflictError):
     default_message = "Job is already running"
 
 
+class JobStateError(ConflictError):
+    code = "job_state_error"
+    default_message = "Job is not in a valid state"
+
+
 class JobEnqueueError(UpstreamServiceError):
     code = "job_enqueue_error"
     default_message = "Unable to enqueue job"

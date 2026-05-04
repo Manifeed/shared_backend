@@ -52,3 +52,10 @@ class JobTaskRead(BaseModel):
     item_total: int = Field(ge=0, default=0)
     item_success: int = Field(ge=0, default=0)
     item_error: int = Field(ge=0, default=0)
+
+
+class JobControlCommandRead(BaseModel):
+    ok: bool = True
+    job_id: str
+    status: WorkerJobStatus | None = None
+    deleted: bool = False

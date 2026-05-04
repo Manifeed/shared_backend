@@ -11,6 +11,7 @@ from shared_backend.security.internal_service_auth import (
     build_internal_service_headers,
     read_internal_service_token,
 )
+from shared_backend.utils.logging_utils import REQUEST_ID_HEADER, get_request_id
 
 
 @dataclass(frozen=True)
@@ -53,7 +54,11 @@ def build_service_config(
 
 
 def build_internal_headers(config: ServiceClientConfig) -> dict[str, str]:
-    return build_internal_service_headers(config.internal_token)
+    headers = build_internal_service_headers(config.internal_token)
+    request_id = get_request_id()
+    if request_id:
+        headers[REQUEST_ID_HEADER] = request_id
+    return headers
 
 
 def request_service(

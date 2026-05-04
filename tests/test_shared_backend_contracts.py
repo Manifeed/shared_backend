@@ -22,14 +22,23 @@ from shared_backend.errors.custom_exceptions import InternalServiceAuthError, We
 from shared_backend.security.internal_service_auth import (
     INTERNAL_SERVICE_TOKEN_HEADER,
     require_internal_service_token,
+    read_internal_service_tokens,
     validate_internal_service_token_configuration,
 )
 from shared_backend.schemas.account.account_schema import AccountProfileUpdateRequestSchema
+from shared_backend.schemas.admin.admin_user_schema import AdminUserUpdateRequestSchema
 from shared_backend.utils.auth_utils import (
     hash_password,
     hash_secret_token,
     verify_password,
 )
+from shared_backend.utils.datetime_utils import normalize_datetime_to_utc
+from shared_backend.utils.environment_utils import (
+    is_development_environment,
+    is_production_like_environment,
+)
+from shared_backend.utils.logging_utils import begin_log_context, end_log_context
+from shared_backend.utils.public_url import build_public_url, require_public_base_url
 
 
 @dataclass(frozen=True)
@@ -57,6 +66,11 @@ def test_validate_password_policy_rejects_weak_password() -> None:
 def test_account_profile_update_requires_at_least_one_field() -> None:
     with pytest.raises(ValidationError):
         AccountProfileUpdateRequestSchema()
+
+
+def test_admin_user_update_requires_at_least_one_field() -> None:
+    with pytest.raises(ValidationError):
+        AdminUserUpdateRequestSchema()
 
 
 def test_build_authenticated_user_read_maps_user_record() -> None:
@@ -99,11 +113,55 @@ def test_auth_utils_hash_and_token_contracts() -> None:
     assert hash_secret_token("secret") == hash_secret_token("secret")
 
 
+def test_normalize_datetime_to_utc_supports_naive_and_zulu_values() -> None:
+    naive_value = datetime(2026, 5, 4, 12, 0, 0)
+
+    assert normalize_datetime_to_utc(naive_value) == datetime(2026, 5, 4, 12, 0, 0, tzinfo=UTC)
+    assert normalize_datetime_to_utc("2026-05-04T12:00:00Z") == datetime(
+        2026,
+        5,
+        4,
+        12,
+        0,
+        0,
+        tzinfo=UTC,
+    )
+
+
 def test_internal_service_token_can_be_omitted_in_local_environment() -> None:
     require_internal_service_token(
         SimpleNamespace(headers={}),
         env={"APP_ENV": "local"},
     )
+
+
+def test_internal_service_tokens_support_multiple_candidates() -> None:
+    require_internal_service_token(
+        SimpleNamespace(headers={INTERNAL_SERVICE_TOKEN_HEADER: "y" * 32}),
+        env={
+            "APP_ENV": "production",
+            "INTERNAL_SERVICE_TOKENS": f"{'x' * 32}, {'y' * 32}",
+        },
+    )
+
+
+def test_read_internal_service_tokens_keeps_primary_token_first() -> None:
+    assert read_internal_service_tokens(
+        {
+            "INTERNAL_SERVICE_TOKEN": "x" * 32,
+            "INTERNAL_SERVICE_TOKENS": f"{'y' * 32},{'x' * 32}",
+        }
+    ) == ("x" * 32, "y" * 32)
+
+
+def test_environment_utils_detect_development_values() -> None:
+    assert is_development_environment({"APP_ENV": "development"}) is True
+    assert is_production_like_environment({"APP_ENV": "development"}) is False
+
+
+def test_environment_utils_detect_production_like_values() -> None:
+    assert is_development_environment({"ENVIRONMENT": "staging"}) is False
+    assert is_production_like_environment({"ENVIRONMENT": "staging"}) is True
 
 
 def test_require_internal_service_token_true_overrides_dev_environment() -> None:
@@ -158,3 +216,32 @@ def test_require_service_client_fails_with_shared_upstream_error() -> None:
             env_name="EXAMPLE_SERVICE_URL",
             upstream_error_factory=UpstreamServiceError,
         )
+
+
+def test_internal_service_request_id_header_is_propagated() -> None:
+    token = begin_log_context(
+        request_id="req-123",
+        service_name="example-service",
+    )
+    try:
+        assert build_internal_headers(
+            ServiceClientConfig(
+                base_url="http://example.test",
+                internal_token="x" * 32,
+                timeout_seconds=5.0,
+                service_name="Example",
+            )
+        )["x-request-id"] == "req-123"
+    finally:
+        end_log_context(token)
+
+
+def test_require_public_base_url_normalizes_host_and_path(monkeypatch) -> None:
+    monkeypatch.setenv("PUBLIC_BASE_URL", "https://Example.test/base/")
+
+    public_base_url = require_public_base_url()
+
+    assert public_base_url == "https://example.test/base"
+    assert build_public_url(public_base_url, "/workers/api/releases/desktop") == (
+        "https://example.test/base/workers/api/releases/desktop"
+    )

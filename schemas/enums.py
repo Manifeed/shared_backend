@@ -11,7 +11,9 @@ class WorkerJobKind(StrEnum):
 class WorkerJobStatus(StrEnum):
     QUEUED = "queued"
     PROCESSING = "processing"
+    PAUSED = "paused"
     FINALIZING = "finalizing"
+    CANCELLED = "cancelled"
     COMPLETED = "completed"
     COMPLETED_WITH_ERRORS = "completed_with_errors"
     FAILED = "failed"
@@ -20,6 +22,7 @@ class WorkerJobStatus(StrEnum):
 class WorkerTaskStatus(StrEnum):
     PENDING = "pending"
     PROCESSING = "processing"
+    CANCELLED = "cancelled"
     COMPLETED = "completed"
     FAILED = "failed"
 
