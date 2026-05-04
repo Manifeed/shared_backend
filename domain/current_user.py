@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Protocol
 
 from shared_backend.schemas.auth.auth_schema import AuthenticatedUserRead
+from shared_backend.schemas.internal.service_schema import InternalResolvedSessionRead
 
 
 class AuthenticatedUserRecord(Protocol):
@@ -27,6 +28,19 @@ class AuthenticatedUserContext:
     is_active: bool
     api_access_enabled: bool
     session_expires_at: datetime
+
+
+def authenticated_user_context_from_resolved_session(
+    resolved: InternalResolvedSessionRead,
+) -> AuthenticatedUserContext:
+    return AuthenticatedUserContext(
+        user_id=resolved.user_id,
+        email=resolved.email,
+        role=resolved.role,
+        is_active=resolved.is_active,
+        api_access_enabled=resolved.api_access_enabled,
+        session_expires_at=resolved.session_expires_at,
+    )
 
 
 def build_authenticated_user_read(

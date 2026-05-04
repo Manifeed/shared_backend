@@ -7,7 +7,6 @@ from collections.abc import Callable, Mapping
 from fastapi import Request
 
 from shared_backend.errors.custom_exceptions import InternalServiceAuthError
-from shared_backend.utils.environment import is_local_environment
 
 
 INTERNAL_SERVICE_TOKEN_HEADER = "x-manifeed-internal-token"
@@ -25,8 +24,6 @@ def require_internal_service_token(
     environment = env or os.environ
     validate_internal_service_token_configuration(env=environment, error_factory=error_factory)
     accepted_tokens = read_internal_service_tokens(environment)
-    if not accepted_tokens and is_local_environment(environment):
-        return
     received_token = request.headers.get(INTERNAL_SERVICE_TOKEN_HEADER, "").strip()
     if not received_token or not any(
         secrets.compare_digest(received_token, expected_token)
@@ -43,19 +40,16 @@ def validate_internal_service_token_configuration(
     environment = env or os.environ
     accepted_tokens = read_internal_service_tokens(environment)
     if not accepted_tokens:
-        if is_local_environment(environment):
-            return
         raise _build_internal_service_auth_error(
             "INTERNAL_SERVICE_TOKEN or INTERNAL_SERVICE_TOKENS must be configured",
             error_factory,
         )
-    if not is_local_environment(environment):
-        for expected_token in accepted_tokens:
-            if len(expected_token) < 32:
-                raise _build_internal_service_auth_error(
-                    "INTERNAL_SERVICE_TOKEN is too weak",
-                    error_factory,
-                )
+    for expected_token in accepted_tokens:
+        if len(expected_token) < 32:
+            raise _build_internal_service_auth_error(
+                "INTERNAL_SERVICE_TOKEN is too weak",
+                error_factory,
+            )
 
 
 def read_internal_service_token(env: Mapping[str, str] | None = None) -> str | None:

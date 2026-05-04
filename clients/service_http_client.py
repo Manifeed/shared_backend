@@ -68,6 +68,7 @@ def request_service(
     path: str,
     params: dict[str, Any] | None = None,
     json: dict[str, Any] | None = None,
+    headers: dict[str, str] | None = None,
     http_client: httpx.Client | None = None,
     app_error_factory: Any,
     upstream_error_factory: Any,
@@ -76,13 +77,16 @@ def request_service(
     started_at = perf_counter()
     request_url = f"{config.base_url}{path}"
     try:
+        request_headers = build_internal_headers(config)
+        if headers:
+            request_headers.update(headers)
         if http_client is not None:
             response = http_client.request(
                 method,
                 request_url,
                 params=compact_params(params),
                 json=json,
-                headers=build_internal_headers(config),
+                headers=request_headers,
                 timeout=config.timeout_seconds,
             )
         else:
@@ -92,7 +96,7 @@ def request_service(
                     request_url,
                     params=compact_params(params),
                     json=json,
-                    headers=build_internal_headers(config),
+                    headers=request_headers,
                 )
     except httpx.HTTPError as exception:
         emit_trace(

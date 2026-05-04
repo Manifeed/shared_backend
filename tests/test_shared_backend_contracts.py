@@ -13,7 +13,11 @@ from shared_backend.clients.service_http_client import (
     build_service_config,
     require_service_client,
 )
-from shared_backend.domain.current_user import build_authenticated_user_read
+from shared_backend.domain.current_user import (
+    authenticated_user_context_from_resolved_session,
+    build_authenticated_user_read,
+)
+from shared_backend.schemas.internal.service_schema import InternalResolvedSessionRead
 from shared_backend.domain.password_policy import validate_password_policy
 from shared_backend.domain.user_identity import normalize_user_pseudo
 from shared_backend.domain.worker_identity import build_worker_name
@@ -94,6 +98,25 @@ def test_build_authenticated_user_read_maps_user_record() -> None:
     assert result.created_at == now
 
 
+def test_authenticated_user_context_from_resolved_session_maps_fields() -> None:
+    now = datetime.now(UTC)
+    resolved = InternalResolvedSessionRead(
+        user_id=3,
+        email="x@y.com",
+        role="user",
+        is_active=True,
+        api_access_enabled=False,
+        session_expires_at=now,
+    )
+    context = authenticated_user_context_from_resolved_session(resolved)
+    assert context.user_id == 3
+    assert context.email == "x@y.com"
+    assert context.role == "user"
+    assert context.is_active is True
+    assert context.api_access_enabled is False
+    assert context.session_expires_at == now
+
+
 def test_worker_name_uses_normalized_parts() -> None:
     assert (
         build_worker_name(
@@ -128,11 +151,12 @@ def test_normalize_datetime_to_utc_supports_naive_and_zulu_values() -> None:
     )
 
 
-def test_internal_service_token_can_be_omitted_in_local_environment() -> None:
-    require_internal_service_token(
-        SimpleNamespace(headers={}),
-        env={"APP_ENV": "local"},
-    )
+def test_internal_service_token_is_required_in_local_environment() -> None:
+    with pytest.raises(InternalServiceAuthError):
+        require_internal_service_token(
+            SimpleNamespace(headers={}),
+            env={"APP_ENV": "local"},
+        )
 
 
 def test_internal_service_tokens_support_multiple_candidates() -> None:
@@ -162,16 +186,6 @@ def test_environment_utils_detect_development_values() -> None:
 def test_environment_utils_detect_production_like_values() -> None:
     assert is_development_environment({"ENVIRONMENT": "staging"}) is False
     assert is_production_like_environment({"ENVIRONMENT": "staging"}) is True
-
-
-def test_require_internal_service_token_true_overrides_dev_environment() -> None:
-    with pytest.raises(InternalServiceAuthError):
-        validate_internal_service_token_configuration(
-            env={
-                "APP_ENV": "dev",
-                "REQUIRE_INTERNAL_SERVICE_TOKEN": "true",
-            }
-        )
 
 
 def test_internal_service_token_header_is_built_when_token_is_present() -> None:
