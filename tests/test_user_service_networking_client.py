@@ -13,7 +13,6 @@ from shared_backend.clients.user_service_networking_client import (
     INTERNAL_CURRENT_USER_IS_ACTIVE_HEADER,
     INTERNAL_CURRENT_USER_ROLE_HEADER,
     INTERNAL_CURRENT_USER_SESSION_EXPIRES_AT_HEADER,
-    INTERNAL_SESSION_TOKEN_HEADER,
     UserServiceNetworkingClient,
 )
 from shared_backend.domain.current_user import AuthenticatedUserContext
@@ -35,10 +34,6 @@ def _config() -> ServiceClientConfig:
     )
 
 
-def _session_token() -> str:
-    return "msess_example"
-
-
 def _current_user() -> AuthenticatedUserContext:
     return AuthenticatedUserContext(
         user_id=7,
@@ -50,7 +45,7 @@ def _current_user() -> AuthenticatedUserContext:
     )
 
 
-def test_read_account_me_wraps_session_token_payload(monkeypatch, sample_auth_user) -> None:
+def test_read_account_me_wraps_current_user_payload(monkeypatch, sample_auth_user) -> None:
     seen: dict[str, object] = {}
 
     def fake_request_service(**kwargs) -> httpx.Response:
@@ -63,18 +58,17 @@ def test_read_account_me_wraps_session_token_payload(monkeypatch, sample_auth_us
 
     monkeypatch.setattr(user_service_networking_client, "request_service", fake_request_service)
     client = UserServiceNetworkingClient(_config())
-    session_token = _session_token()
+    current_user = _current_user()
 
-    response = client.read_account_me(session_token=session_token)
+    response = client.read_account_me(current_user=current_user)
 
     assert isinstance(response, AccountMeRead)
     assert seen["path"] == "/internal/users/account/me"
-    assert seen["json"] == {
-        "payload": {"session_token": session_token}
-    }
+    assert seen["json"]["payload"]["current_user"]["user_id"] == current_user.user_id
+    assert seen["json"]["payload"]["current_user"]["email"] == current_user.email
 
 
-def test_read_account_api_keys_passes_session_token_header(monkeypatch) -> None:
+def test_read_account_api_keys_passes_current_user_headers(monkeypatch) -> None:
     seen: dict[str, object] = {}
 
     def fake_request_service(**kwargs) -> httpx.Response:
@@ -87,14 +81,14 @@ def test_read_account_api_keys_passes_session_token_header(monkeypatch) -> None:
 
     monkeypatch.setattr(user_service_networking_client, "request_service", fake_request_service)
     client = UserServiceNetworkingClient(_config())
-    session_token = _session_token()
+    current_user = _current_user()
 
-    response = client.read_account_api_keys(session_token=session_token)
+    response = client.read_account_api_keys(current_user=current_user)
 
     assert response.items == []
     assert seen["method"] == "GET"
     assert seen["path"] == "/internal/users/account/api-keys"
-    assert seen["headers"] == {INTERNAL_SESSION_TOKEN_HEADER: session_token}
+    assert seen["headers"] == _expected_current_user_headers(current_user)
 
 
 def test_create_account_api_key_wraps_internal_request_payload(monkeypatch) -> None:
@@ -121,22 +115,18 @@ def test_create_account_api_key_wraps_internal_request_payload(monkeypatch) -> N
 
     monkeypatch.setattr(user_service_networking_client, "request_service", fake_request_service)
     client = UserServiceNetworkingClient(_config())
-    session_token = _session_token()
+    current_user = _current_user()
     payload = UserApiKeyCreateRequestSchema(label="smoke", worker_type="rss_scrapper")
 
-    response = client.create_account_api_key(session_token=session_token, payload=payload)
+    response = client.create_account_api_key(current_user=current_user, payload=payload)
 
     assert isinstance(response, UserApiKeyCreateRead)
     assert seen["path"] == "/internal/users/account/api-keys"
-    assert seen["json"] == {
-        "payload": {
-            "session_token": session_token,
-            "payload": payload.model_dump(mode="json"),
-        }
-    }
+    assert seen["json"]["payload"]["current_user"]["user_id"] == current_user.user_id
+    assert seen["json"]["payload"]["payload"] == payload.model_dump(mode="json")
 
 
-def test_delete_account_api_key_passes_session_token_header(monkeypatch) -> None:
+def test_delete_account_api_key_passes_current_user_headers(monkeypatch) -> None:
     seen: dict[str, object] = {}
 
     def fake_request_service(**kwargs) -> httpx.Response:
@@ -152,14 +142,14 @@ def test_delete_account_api_key_passes_session_token_header(monkeypatch) -> None
 
     monkeypatch.setattr(user_service_networking_client, "request_service", fake_request_service)
     client = UserServiceNetworkingClient(_config())
-    session_token = _session_token()
+    current_user = _current_user()
 
-    response = client.delete_account_api_key(session_token=session_token, api_key_id=9)
+    response = client.delete_account_api_key(current_user=current_user, api_key_id=9)
 
     assert isinstance(response, UserApiKeyDeleteRead)
     assert seen["method"] == "DELETE"
     assert seen["path"] == "/internal/users/account/api-keys/9"
-    assert seen["headers"] == {INTERNAL_SESSION_TOKEN_HEADER: session_token}
+    assert seen["headers"] == _expected_current_user_headers(current_user)
 
 
 def test_read_admin_users_passes_filters_and_current_user_headers(monkeypatch) -> None:
@@ -239,3 +229,16 @@ def test_update_admin_user_wraps_current_user_and_payload(monkeypatch) -> None:
     assert seen["json"]["payload"]["current_user"]["email"] == current_user.email
     assert seen["json"]["payload"]["current_user"]["role"] == current_user.role
     assert seen["json"]["payload"]["payload"] == {"api_access_enabled": False}
+
+
+def _expected_current_user_headers(current_user: AuthenticatedUserContext) -> dict[str, str]:
+    return {
+        INTERNAL_CURRENT_USER_ID_HEADER: str(current_user.user_id),
+        INTERNAL_CURRENT_USER_EMAIL_HEADER: current_user.email,
+        INTERNAL_CURRENT_USER_ROLE_HEADER: current_user.role,
+        INTERNAL_CURRENT_USER_IS_ACTIVE_HEADER: "true" if current_user.is_active else "false",
+        INTERNAL_CURRENT_USER_API_ACCESS_ENABLED_HEADER: (
+            "true" if current_user.api_access_enabled else "false"
+        ),
+        INTERNAL_CURRENT_USER_SESSION_EXPIRES_AT_HEADER: current_user.session_expires_at.isoformat(),
+    }

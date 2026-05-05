@@ -11,7 +11,6 @@ from shared_backend.schemas.account.account_schema import (
 )
 from shared_backend.schemas.admin.admin_user_schema import AdminUserUpdateRequestSchema
 from shared_backend.schemas.auth.auth_schema import UserRole
-from shared_backend.schemas.internal.auth_service_schema import InternalSessionTokenRequest
 
 
 class InternalCurrentUserPayload(BaseModel):
@@ -49,27 +48,33 @@ class InternalAdminUserUpdateRequest(BaseModel):
 
 
 class InternalAccountProfileUpdateRequest(BaseModel):
-    session_token: str = Field(min_length=1)
+    current_user: InternalCurrentUserPayload
     payload: AccountProfileUpdateRequestSchema
 
 
 class InternalAccountPasswordUpdateRequest(BaseModel):
-    session_token: str = Field(min_length=1)
+    current_user: InternalCurrentUserPayload
     payload: AccountPasswordUpdateRequestSchema
 
 
 class InternalApiKeyCreateRequest(BaseModel):
-    session_token: str = Field(min_length=1)
+    current_user: InternalCurrentUserPayload
     payload: UserApiKeyCreateRequestSchema
+
+
+class InternalAccountMeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    current_user: InternalCurrentUserPayload
 
 
 __all__ = [
     "InternalAdminUserListFilters",
     "InternalAdminUserListRequest",
     "InternalAdminUserUpdateRequest",
+    "InternalAccountMeRequest",
     "InternalAccountPasswordUpdateRequest",
     "InternalAccountProfileUpdateRequest",
     "InternalApiKeyCreateRequest",
     "InternalCurrentUserPayload",
-    "InternalSessionTokenRequest",
 ]

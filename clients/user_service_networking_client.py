@@ -31,9 +31,9 @@ from shared_backend.schemas.admin.admin_user_schema import (
     AdminUserUpdateRequestSchema,
 )
 from shared_backend.schemas.auth.auth_schema import UserRole
-from shared_backend.schemas.internal.auth_service_schema import InternalSessionTokenRequest
 from shared_backend.schemas.internal.service_schema import InternalServiceHealthRead
 from shared_backend.schemas.internal.user_service_schema import (
+    InternalAccountMeRequest,
     InternalAccountPasswordUpdateRequest,
     InternalAccountProfileUpdateRequest,
     InternalAdminUserUpdateRequest,
@@ -41,8 +41,6 @@ from shared_backend.schemas.internal.user_service_schema import (
     InternalCurrentUserPayload,
 )
 
-
-INTERNAL_SESSION_TOKEN_HEADER = "x-manifeed-session-token"
 
 INTERNAL_CURRENT_USER_ID_HEADER = "x-manifeed-acting-user-id"
 INTERNAL_CURRENT_USER_EMAIL_HEADER = "x-manifeed-acting-user-email"
@@ -80,24 +78,28 @@ class UserServiceNetworkingClient:
             return None
         return cls(config, http_client=http_client, trace_callback=trace_callback)
 
-    def read_account_me(self, *, session_token: str) -> AccountMeRead:
+    def read_account_me(self, *, current_user: AuthenticatedUserContext) -> AccountMeRead:
         response = self._post(
             "/internal/users/account/me",
-            json={"payload": InternalSessionTokenRequest(session_token=session_token).model_dump(mode="json")},
+            json={
+                "payload": InternalAccountMeRequest(
+                    current_user=_current_user_payload(current_user),
+                ).model_dump(mode="json")
+            },
         )
         return AccountMeRead.model_validate(response.json())
 
     def update_account_profile(
         self,
         *,
-        session_token: str,
+        current_user: AuthenticatedUserContext,
         payload: AccountProfileUpdateRequestSchema,
     ) -> AccountProfileUpdateRead:
         response = self._patch(
             "/internal/users/account/me",
             json={
                 "payload": InternalAccountProfileUpdateRequest(
-                    session_token=session_token,
+                    current_user=_current_user_payload(current_user),
                     payload=payload,
                 ).model_dump(mode="json", exclude_none=True)
             },
@@ -107,39 +109,39 @@ class UserServiceNetworkingClient:
     def update_account_password(
         self,
         *,
-        session_token: str,
+        current_user: AuthenticatedUserContext,
         payload: AccountPasswordUpdateRequestSchema,
     ) -> AccountPasswordUpdateRead:
         response = self._patch(
             "/internal/users/account/password",
             json={
                 "payload": InternalAccountPasswordUpdateRequest(
-                    session_token=session_token,
+                    current_user=_current_user_payload(current_user),
                     payload=payload,
                 ).model_dump(mode="json")
             },
         )
         return AccountPasswordUpdateRead.model_validate(response.json())
 
-    def read_account_api_keys(self, *, session_token: str) -> UserApiKeyListRead:
+    def read_account_api_keys(self, *, current_user: AuthenticatedUserContext) -> UserApiKeyListRead:
         response = self._get(
             "/internal/users/account/api-keys",
             params={},
-            headers={INTERNAL_SESSION_TOKEN_HEADER: session_token},
+            headers=_current_user_headers(current_user),
         )
         return UserApiKeyListRead.model_validate(response.json())
 
     def create_account_api_key(
         self,
         *,
-        session_token: str,
+        current_user: AuthenticatedUserContext,
         payload: UserApiKeyCreateRequestSchema,
     ) -> UserApiKeyCreateRead:
         response = self._post(
             "/internal/users/account/api-keys",
             json={
                 "payload": InternalApiKeyCreateRequest(
-                    session_token=session_token,
+                    current_user=_current_user_payload(current_user),
                     payload=payload,
                 ).model_dump(mode="json")
             },
@@ -149,12 +151,12 @@ class UserServiceNetworkingClient:
     def delete_account_api_key(
         self,
         *,
-        session_token: str,
+        current_user: AuthenticatedUserContext,
         api_key_id: int,
     ) -> UserApiKeyDeleteRead:
         response = self._delete(
             f"/internal/users/account/api-keys/{api_key_id}",
-            headers={INTERNAL_SESSION_TOKEN_HEADER: session_token},
+            headers=_current_user_headers(current_user),
         )
         return UserApiKeyDeleteRead.model_validate(response.json())
 
