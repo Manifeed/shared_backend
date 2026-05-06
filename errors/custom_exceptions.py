@@ -122,11 +122,6 @@ class RssCatalogParseError(UnprocessableEntityError):
     default_message = "RSS catalog payload is invalid"
 
 
-class RssIconNotFoundError(NotFoundError):
-    code = "rss_icon_not_found"
-    default_message = "RSS icon not found"
-
-
 class RssFeedNotFoundError(NotFoundError):
     code = "rss_feed_not_found"
     default_message = "RSS feed not found"

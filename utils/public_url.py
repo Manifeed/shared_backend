@@ -7,9 +7,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 def normalize_public_http_url(value: str | None, *, require_https: bool = False) -> str | None:
     raw_value = (value or "").strip()
-    if not raw_value:
-        return None
-    if any(ord(character) < 32 or ord(character) == 127 for character in raw_value):
+    if not raw_value or any(ord(character) < 32 or ord(character) == 127 for character in raw_value):
         return None
 
     try:
