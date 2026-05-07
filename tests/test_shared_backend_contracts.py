@@ -121,10 +121,10 @@ def test_worker_name_uses_normalized_parts() -> None:
     assert (
         build_worker_name(
             pseudo="Élodie",
-            worker_type="source_embedding",
+            worker_type="rss_scrapper",
             worker_number=0,
         )
-        == "elodie-embedding-1"
+        == "elodie-rss-1"
     )
 
 

@@ -34,7 +34,6 @@ class WorkerTaskOutcome(StrEnum):
 
 class WorkerKind(StrEnum):
     RSS_SCRAPPER = "rss_scrapper"
-    SOURCE_EMBEDDING = "source_embedding"
 
 
 class RssFeedRuntimeStatus(StrEnum):

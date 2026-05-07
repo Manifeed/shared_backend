@@ -20,6 +20,7 @@ from shared_backend.schemas.sources.source_schema import (
     RssSourcePageRead,
     UserSourceDetailRead,
     UserSourcePageRead,
+    UserSourceSearchPageRead,
 )
 
 
@@ -103,6 +104,33 @@ class ContentServiceNetworkingClient:
         )
         return UserSourcePageRead.model_validate(response.json())
 
+    def search_user_sources(
+        self,
+        *,
+        q: str | None,
+        limit: int,
+        offset: int,
+        language: str | None,
+        publisher_id: int | None,
+        author_id: int | None,
+        published_from: str | None,
+        published_to: str | None,
+    ) -> UserSourceSearchPageRead:
+        response = self._get(
+            "/internal/content/sources/search",
+            params={
+                "q": q,
+                "limit": limit,
+                "offset": offset,
+                "language": language,
+                "publisher_id": publisher_id,
+                "author_id": author_id,
+                "published_from": published_from,
+                "published_to": published_to,
+            },
+        )
+        return UserSourceSearchPageRead.model_validate(response.json())
+
     def read_user_source(self, *, source_id: int) -> UserSourceDetailRead:
         response = self._get(f"/internal/content/sources/{source_id}")
         return UserSourceDetailRead.model_validate(response.json())
@@ -112,11 +140,10 @@ class ContentServiceNetworkingClient:
         *,
         source_id: int,
         limit: int,
-        worker_version: str | None,
     ) -> SimilarSourcesRead:
         response = self._get(
             f"/internal/content/sources/{source_id}/similar",
-            params={"limit": limit, "worker_version": worker_version},
+            params={"limit": limit},
         )
         return SimilarSourcesRead.model_validate(response.json())
 
@@ -166,4 +193,3 @@ def get_required_content_service_client(
         env_name="CONTENT_SERVICE_URL",
         upstream_error_factory=UpstreamServiceError,
     )
-

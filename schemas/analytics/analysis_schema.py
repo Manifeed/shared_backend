@@ -18,5 +18,5 @@ class SimilarSourceRead(BaseModel):
 
 class SimilarSourcesRead(BaseModel):
     source_id: int = Field(ge=1)
-    worker_version: str = Field(min_length=1)
+    model_name: str = Field(min_length=1)
     items: list[SimilarSourceRead] = Field(default_factory=list)
