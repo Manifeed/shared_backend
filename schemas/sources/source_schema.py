@@ -3,15 +3,14 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-SourceSearchMatchedBy = Literal["sparse", "dense"]
+SourceSearchMatchedBy = Literal["lexical", "sparse", "dense"]
 SourceSearchFilterField = Literal[
-    "language",
-    "publisher_id",
+    "country",
+    "company_id",
     "author_id",
-    "published_from",
-    "published_to",
+    "published_period",
 ]
-SourceSearchFilterSource = Literal["explicit", "inferred"]
+SourceSearchFilterSource = Literal["explicit"]
 
 
 class RssSourceAuthorRead(BaseModel):

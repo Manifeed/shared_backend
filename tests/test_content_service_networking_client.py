@@ -108,11 +108,10 @@ def test_search_user_sources_calls_internal_content_search_path(monkeypatch) -> 
         q="finance",
         limit=24,
         offset=0,
-        language="fr",
-        publisher_id=4,
+        country="fr",
+        company_id=4,
         author_id=8,
-        published_from="2026-01-01",
-        published_to="2026-01-31",
+        period="24h",
     )
 
     assert isinstance(response, UserSourceSearchPageRead)
@@ -121,11 +120,10 @@ def test_search_user_sources_calls_internal_content_search_path(monkeypatch) -> 
         "q": "finance",
         "limit": 24,
         "offset": 0,
-        "language": "fr",
-        "publisher_id": 4,
+        "country": "fr",
+        "company_id": 4,
         "author_id": 8,
-        "published_from": "2026-01-01",
-        "published_to": "2026-01-31",
+        "period": "24h",
     }
 
 

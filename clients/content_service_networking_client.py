@@ -110,11 +110,10 @@ class ContentServiceNetworkingClient:
         q: str | None,
         limit: int,
         offset: int,
-        language: str | None,
-        publisher_id: int | None,
+        country: str | None,
+        company_id: int | None,
         author_id: int | None,
-        published_from: str | None,
-        published_to: str | None,
+        period: str | None,
     ) -> UserSourceSearchPageRead:
         response = self._get(
             "/internal/content/sources/search",
@@ -122,11 +121,10 @@ class ContentServiceNetworkingClient:
                 "q": q,
                 "limit": limit,
                 "offset": offset,
-                "language": language,
-                "publisher_id": publisher_id,
+                "country": country,
+                "company_id": company_id,
                 "author_id": author_id,
-                "published_from": published_from,
-                "published_to": published_to,
+                "period": period,
             },
         )
         return UserSourceSearchPageRead.model_validate(response.json())
