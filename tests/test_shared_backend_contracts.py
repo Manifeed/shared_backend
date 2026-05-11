@@ -256,6 +256,6 @@ def test_require_public_base_url_normalizes_host_and_path(monkeypatch) -> None:
     public_base_url = require_public_base_url()
 
     assert public_base_url == "https://example.test/base"
-    assert build_public_url(public_base_url, "/workers/api/releases/desktop") == (
-        "https://example.test/base/workers/api/releases/desktop"
+    assert build_public_url(public_base_url, "/workers/api/releases/manifest") == (
+        "https://example.test/base/workers/api/releases/manifest"
     )
