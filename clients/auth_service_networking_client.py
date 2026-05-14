@@ -10,7 +10,6 @@ from shared_backend.clients.service_http_client import (
     ServiceRequestTrace,
     build_service_config,
     request_service,
-    require_service_client,
 )
 from shared_backend.errors.app_error import AppError, UpstreamServiceError
 from shared_backend.schemas.auth.auth_schema import (
@@ -117,22 +116,3 @@ class AuthServiceNetworkingClient:
             trace_callback=self._trace_callback,
         )
 
-
-def get_auth_service_client(
-    *,
-    http_client: httpx.Client | None = None,
-    trace_callback: Callable[[ServiceRequestTrace], None] | None = None,
-) -> AuthServiceNetworkingClient | None:
-    return AuthServiceNetworkingClient.from_env(http_client=http_client, trace_callback=trace_callback)
-
-
-def get_required_auth_service_client(
-    *,
-    http_client: httpx.Client | None = None,
-    trace_callback: Callable[[ServiceRequestTrace], None] | None = None,
-) -> AuthServiceNetworkingClient:
-    return require_service_client(
-        get_auth_service_client(http_client=http_client, trace_callback=trace_callback),
-        env_name="AUTH_SERVICE_URL",
-        upstream_error_factory=UpstreamServiceError,
-    )

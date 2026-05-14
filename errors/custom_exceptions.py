@@ -152,21 +152,6 @@ class WorkerLeaseNotFoundError(NotFoundError):
     default_message = "Worker lease does not exist"
 
 
-class WorkerReleaseNotFoundError(NotFoundError):
-    code = "worker_release_not_found"
-    default_message = "Worker release manifest entry not found"
-
-
-class WorkerReleaseCatalogError(AppError):
-    code = "worker_release_catalog_error"
-    default_message = "Worker release catalog is invalid"
-
-
-class WorkerReleaseDownloadForbiddenError(AuthorizationError):
-    code = "worker_release_download_forbidden"
-    default_message = "Worker API key does not grant access to this artifact"
-
-
 class WorkerSignatureError(AuthorizationError):
     code = "worker_signature_error"
     default_message = "Worker request signature is invalid"
@@ -185,11 +170,6 @@ class WorkerTaskNotFoundError(NotFoundError):
 class WorkerTaskStateError(ConflictError):
     code = "worker_task_state_error"
     default_message = "Worker task is not in a valid state"
-
-
-class WorkerTaskValidationError(UnprocessableEntityError):
-    code = "worker_task_validation_error"
-    default_message = "Worker task payload is invalid"
 
 
 class InvalidPseudoError(UnprocessableEntityError):

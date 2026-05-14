@@ -10,7 +10,6 @@ from shared_backend.clients.service_http_client import (
     ServiceRequestTrace,
     build_service_config,
     request_service,
-    require_service_client,
 )
 from shared_backend.domain.current_user import AuthenticatedUserContext
 from shared_backend.errors.app_error import AppError, UpstreamServiceError
@@ -240,26 +239,6 @@ class UserServiceNetworkingClient:
             upstream_error_factory=UpstreamServiceError,
             trace_callback=self._trace_callback,
         )
-
-
-def user_service_client_from_env(
-    *,
-    http_client: httpx.Client | None = None,
-    trace_callback: Callable[[ServiceRequestTrace], None] | None = None,
-) -> UserServiceNetworkingClient | None:
-    return UserServiceNetworkingClient.from_env(http_client=http_client, trace_callback=trace_callback)
-
-
-def get_required_user_service_client(
-    *,
-    http_client: httpx.Client | None = None,
-    trace_callback: Callable[[ServiceRequestTrace], None] | None = None,
-) -> UserServiceNetworkingClient:
-    return require_service_client(
-        user_service_client_from_env(http_client=http_client, trace_callback=trace_callback),
-        env_name="USER_SERVICE_URL",
-        upstream_error_factory=UpstreamServiceError,
-    )
 
 
 def _current_user_payload(current_user: AuthenticatedUserContext) -> InternalCurrentUserPayload:

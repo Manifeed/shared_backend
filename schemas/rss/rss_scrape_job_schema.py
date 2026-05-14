@@ -14,10 +14,3 @@ class RssScrapeFeedPayloadSchema(BaseModel):
     etag: str | None = Field(default=None, max_length=255)
     last_update: datetime | None = None
     last_db_article_published_at: datetime | None = None
-
-
-class RssScrapeJobRequestSchema(BaseModel):
-    job_id: str = Field(min_length=1, max_length=64)
-    requested_at: datetime
-    ingest: bool
-    feeds: list[RssScrapeFeedPayloadSchema] = Field(default_factory=list)
