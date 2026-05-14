@@ -28,7 +28,14 @@ class RssSourceCatalogSchema(BaseModel):
     company: str = Field(min_length=1, max_length=100)
     host: str | None = Field(default=None, min_length=1, max_length=255)
     img: str | None = Field(default=None, max_length=500)
-    country: str | None = Field(default=None, min_length=2, max_length=2)
-    language: str | None = Field(default=None, min_length=2, max_length=2)
+    country: str = Field(default="xx", min_length=2, max_length=2)
     fetchprotection: int = Field(default=1, ge=0, le=2)
     feeds: list[RssSourceFeedSchema] = Field(default_factory=list)
+
+    @field_validator("country", mode="before")
+    @classmethod
+    def validate_country(cls, value: object) -> str:
+        if value is None:
+            return "xx"
+        normalized = str(value).strip().lower()[:2]
+        return normalized or "xx"

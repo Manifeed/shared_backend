@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from shared_backend.schemas.auth.auth_schema import UserRole
 
@@ -27,3 +27,9 @@ class AdminUserUpdateRequestSchema(BaseModel):
 
     is_active: bool | None = None
     api_access_enabled: bool | None = None
+
+    @model_validator(mode="after")
+    def validate_non_empty_payload(self) -> "AdminUserUpdateRequestSchema":
+        if self.is_active is None and self.api_access_enabled is None:
+            raise ValueError("At least one admin field must be provided")
+        return self

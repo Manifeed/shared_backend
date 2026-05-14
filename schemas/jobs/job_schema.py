@@ -46,9 +46,20 @@ class JobsOverviewRead(BaseModel):
 class JobTaskRead(BaseModel):
     task_id: int = Field(ge=1)
     status: WorkerTaskStatus
+    execution_id: int | None = Field(default=None, ge=1)
     claimed_at: datetime | None = None
     completed_at: datetime | None = None
     claim_expires_at: datetime | None = None
+    attempt_count: int | None = Field(default=None, ge=0)
+    last_error: str | None = None
+    claim_owner: str | None = None
     item_total: int = Field(ge=0, default=0)
     item_success: int = Field(ge=0, default=0)
     item_error: int = Field(ge=0, default=0)
+
+
+class JobControlCommandRead(BaseModel):
+    ok: bool = True
+    job_id: str
+    status: WorkerJobStatus | None = None
+    deleted: bool = False

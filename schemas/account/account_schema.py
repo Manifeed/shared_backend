@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from shared_backend.schemas.auth.auth_schema import AuthenticatedUserRead
 
 
-WorkerType = Literal["rss_scrapper", "source_embedding"]
+WorkerType = Literal["rss_scrapper"]
 
 
 class AccountMeRead(BaseModel):

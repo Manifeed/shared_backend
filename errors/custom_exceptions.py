@@ -97,6 +97,11 @@ class JobAlreadyRunningError(ConflictError):
     default_message = "Job is already running"
 
 
+class JobStateError(ConflictError):
+    code = "job_state_error"
+    default_message = "Job is not in a valid state"
+
+
 class JobEnqueueError(UpstreamServiceError):
     code = "job_enqueue_error"
     default_message = "Unable to enqueue job"
@@ -115,11 +120,6 @@ class RssRepositorySyncError(UpstreamServiceError):
 class RssCatalogParseError(UnprocessableEntityError):
     code = "rss_catalog_parse_error"
     default_message = "RSS catalog payload is invalid"
-
-
-class RssIconNotFoundError(NotFoundError):
-    code = "rss_icon_not_found"
-    default_message = "RSS icon not found"
 
 
 class RssFeedNotFoundError(NotFoundError):
@@ -152,21 +152,6 @@ class WorkerLeaseNotFoundError(NotFoundError):
     default_message = "Worker lease does not exist"
 
 
-class WorkerReleaseNotFoundError(NotFoundError):
-    code = "worker_release_not_found"
-    default_message = "Worker release manifest entry not found"
-
-
-class WorkerReleaseCatalogError(AppError):
-    code = "worker_release_catalog_error"
-    default_message = "Worker release catalog is invalid"
-
-
-class WorkerReleaseDownloadForbiddenError(AuthorizationError):
-    code = "worker_release_download_forbidden"
-    default_message = "Worker API key does not grant access to this artifact"
-
-
 class WorkerSignatureError(AuthorizationError):
     code = "worker_signature_error"
     default_message = "Worker request signature is invalid"
@@ -185,11 +170,6 @@ class WorkerTaskNotFoundError(NotFoundError):
 class WorkerTaskStateError(ConflictError):
     code = "worker_task_state_error"
     default_message = "Worker task is not in a valid state"
-
-
-class WorkerTaskValidationError(UnprocessableEntityError):
-    code = "worker_task_validation_error"
-    default_message = "Worker task payload is invalid"
 
 
 class InvalidPseudoError(UnprocessableEntityError):

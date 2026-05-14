@@ -11,7 +11,9 @@ class WorkerJobKind(StrEnum):
 class WorkerJobStatus(StrEnum):
     QUEUED = "queued"
     PROCESSING = "processing"
+    PAUSED = "paused"
     FINALIZING = "finalizing"
+    CANCELLED = "cancelled"
     COMPLETED = "completed"
     COMPLETED_WITH_ERRORS = "completed_with_errors"
     FAILED = "failed"
@@ -20,28 +22,17 @@ class WorkerJobStatus(StrEnum):
 class WorkerTaskStatus(StrEnum):
     PENDING = "pending"
     PROCESSING = "processing"
+    CANCELLED = "cancelled"
     COMPLETED = "completed"
     FAILED = "failed"
 
 
-class WorkerTaskOutcome(StrEnum):
-    SUCCESS = "success"
-    ERROR = "error"
-
-
 class WorkerKind(StrEnum):
     RSS_SCRAPPER = "rss_scrapper"
-    SOURCE_EMBEDDING = "source_embedding"
 
 
 class RssFeedRuntimeStatus(StrEnum):
     PENDING = "pending"
     SUCCESS = "success"
     NOT_MODIFIED = "not_modified"
-    ERROR = "error"
-
-
-class EmbeddingItemStatus(StrEnum):
-    PENDING = "pending"
-    SUCCESS = "success"
     ERROR = "error"

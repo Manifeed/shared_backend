@@ -7,6 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from .app_error import AppError
+from shared_backend.utils.logging_utils import get_request_id
 
 
 logger = logging.getLogger(__name__)
@@ -53,8 +54,16 @@ def request_validation_error_handler(
     )
 
 
-def unexpected_exception_handler(_: Request, exception: Exception) -> JSONResponse:
-    logger.exception("Unhandled application error", exc_info=exception)
+def unexpected_exception_handler(request: Request, exception: Exception) -> JSONResponse:
+    logger.exception(
+        {
+            "event": "unhandled_exception",
+            "method": request.method,
+            "path": request.url.path,
+            "request_id": get_request_id(),
+        },
+        exc_info=exception,
+    )
     return JSONResponse(
         status_code=500,
         content={
