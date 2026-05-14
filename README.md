@@ -4,8 +4,8 @@ Shared backend package for Manifeed microservices.
 
 ## What Belongs Here
 
-This package only contains cross-service building blocks with no database
-access and no business logic tied to a specific service:
+This package only contains cross-service building blocks with no service-owned
+business orchestration:
 
 - shared application errors and exception handlers;
 - Pydantic schemas for APIs and internal service payloads;
@@ -13,17 +13,18 @@ access and no business logic tied to a specific service:
 - security helpers for passwords, sessions, API keys, and secrets;
 - inter-service authentication helpers;
 - reusable internal HTTP client helpers.
+- reusable low-level database/Qdrant clients shared by multiple services.
 
-Each service keeps its own database clients, repositories, and local business
-orchestration.
+Each service keeps its own route handlers, service orchestration, and
+service-specific integrations.
 
 ## Sharing Rule
 
 - If a contract or helper is used by at least two services, it belongs in
   `shared_backend`.
-- If code depends on a database, a service-specific endpoint, a business
-  workflow, or an external integration owned by a single service, it stays
-  local.
+- If code is a low-level reusable boundary client or pure helper used by at
+  least two services, it belongs here.
+- If code encodes a service-specific workflow or endpoint contract, it stays local.
 
 ## Change Workflow
 
